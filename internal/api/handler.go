@@ -2,11 +2,14 @@ package api
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/google/uuid"
 	"github.com/sat-h/go-queue/internal/job"
 )
+
+// LEARN: Injecting a queue allows better testability (easy to mock)
 
 type Handler struct {
 	Queue *job.Queue
@@ -32,7 +35,9 @@ func (h *Handler) SubmitJob(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "failed to enqueue job", http.StatusInternalServerError)
 		return
 	}
-
+	if err := h.Queue.PrintAllJobs(ctx); err != nil {
+		log.Printf("print all jobs error %w", err)
+	}
 	w.WriteHeader(http.StatusAccepted)
 	json.NewEncoder(w).Encode(j)
 }
