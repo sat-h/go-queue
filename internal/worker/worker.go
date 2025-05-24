@@ -3,6 +3,7 @@ package worker
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"log"
 	"time"
 
@@ -39,7 +40,7 @@ func (w *Worker) poll(ctx context.Context, jobs chan<- job.Job) {
 			return
 		default:
 			result, err := w.Queue.Dequeue(ctx)
-			if err == redis.Nil {
+			if errors.Is(err, redis.Nil) {
 				time.Sleep(time.Second)
 				continue
 			}
