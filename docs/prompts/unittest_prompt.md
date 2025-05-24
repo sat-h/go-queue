@@ -3,7 +3,7 @@ Write idiomatic, high-quality, and consistent unit tests for the following Go co
 * Use the standard testing package and the testify assertion library.
 * Name test functions clearly, following Go conventions.
 * Use table-driven tests for multiple scenarios.
-* Use the actual implementation for structs (do not mock structs themselves, but mock external dependencies as needed).
+* Use the actual struct definitions from the codebase in your tests. Do not define or use custom test structs with similar fields.
 * Mock only true external dependencies (e.g., Redis, network calls, processors).
 * Cover both success and failure paths, including edge cases.
 * Avoid global state and ensure tests are independent.
