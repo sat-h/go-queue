@@ -1,3 +1,5 @@
+**Before writing any tests, always check for ambiguities or multiple valid approaches. If anything is unclear, ask for clarification before proceeding.**
+
 Write idiomatic, high-quality, and consistent unit tests for the following Go code. Follow these requirements:
 
 * Use the standard testing package and the testify assertion library.
@@ -9,7 +11,9 @@ Write idiomatic, high-quality, and consistent unit tests for the following Go co
 * Avoid global state and ensure tests are independent.
 * Use t.Parallel() where safe.
 * Add comments for complex logic.
-* Include tests for concurrency aspects (e.g., parallel job processing, graceful shutdown, race conditions) where relevant.
+* **Include tests for concurrency aspects:**
+    - Ensure multiple jobs can be processed in parallel, verifying correct concurrent behavior and throughput.
+    - Test graceful shutdown, confirming no jobs are left unprocessed, no panics occur, and resources are cleaned up.
+    - Check for race conditions or timing-related bugs, and ensure tests can be run with the `-race` flag.
 * Do not include integration tests or benchmarks.
-
-If anything is unclear or there are multiple valid approaches, ask for clarification before proceeding.
+* Do not redefine or duplicate any types (structs, interfaces, etc.) from the codebase in your test files. Always use the actual types by importing them.
