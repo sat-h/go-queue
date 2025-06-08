@@ -41,7 +41,27 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	queue := job.NewQueue(os.Getenv("REDIS_ADDR"))
+	// Determine Redis address with proper environment variable precedence
+	var redisAddr string
+
+	// First check REDIS_ADDR env var
+	redisAddr = os.Getenv("REDIS_ADDR")
+
+	// If not set, build from host and port
+	if redisAddr == "" {
+		host := os.Getenv("REDIS_HOST")
+		port := os.Getenv("REDIS_PORT")
+		if host == "" {
+			host = "localhost" // Default to localhost if REDIS_HOST not set
+		}
+		if port == "" {
+			port = "6379" // Default to 6379 if REDIS_PORT not set
+		}
+		redisAddr = host + ":" + port
+	}
+
+	log.Printf("Connecting to Redis at: %s", redisAddr)
+	queue := job.NewQueue(redisAddr)
 	processor := &job.SimpleProcessor{}
 	w := &worker.Worker{Queue: queue, Processor: processor}
 

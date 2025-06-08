@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-queue-worker
+  namespace: go-queue
+spec:
+  replicas: 1  # Single instance for Phase 5
+  selector:
+    matchLabels:
+      app: worker
+  template:
+    metadata:
+      labels:
+        app: worker
+    spec:
+      containers:
+      - name: worker
+        image: go-queue-worker:latest  # Use your Worker image name
+        imagePullPolicy: IfNotPresent
+        envFrom:
+        - configMapRef:
+            name: go-queue-config
+        - secretRef:
+            name: go-queue-secrets
+        env:
+        - name: REDIS_HOST
+          value: redis
+        - name: REDIS_PORT
+          value: "6379"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+
