@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -21,6 +22,7 @@ func (h *Handler) SubmitJob(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		log.Printf("Error decoding payload: %v", err)
 		http.Error(w, "invalid payload", http.StatusBadRequest)
 		return
 	}
@@ -31,12 +33,17 @@ func (h *Handler) SubmitJob(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
+	log.Printf("Attempting to enqueue job with ID: %s", j.ID)
 	if err := h.Queue.Enqueue(ctx, j); err != nil {
-		http.Error(w, "failed to enqueue job", http.StatusInternalServerError)
+		log.Printf("Error enqueuing job: %v", err)
+		errorMsg := fmt.Sprintf("failed to enqueue job: %v", err)
+		http.Error(w, errorMsg, http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("Successfully enqueued job %s", j.ID)
 	if err := h.Queue.PrintAllJobs(ctx); err != nil {
-		log.Printf("print all jobs error %w", err)
+		log.Printf("Error printing jobs: %v", err)
 	}
 	w.WriteHeader(http.StatusAccepted)
 	json.NewEncoder(w).Encode(j)

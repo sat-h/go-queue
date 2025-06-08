@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: go-queue
+spec:
+  replicas: 1  # Single instance for Phase 5
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+      - name: api
+        image: go-queue-api:latest  # Use your API image name
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: go-queue-config
+        - secretRef:
+            name: go-queue-secrets
+        env:
+        - name: REDIS_ADDR
+          value: "redis.go-queue.svc.cluster.local:6379"  # Explicitly set FQDN
+        - name: REDIS_HOST
+          value: "redis.go-queue.svc.cluster.local"  # Using FQDN instead of just 'redis'
+        - name: REDIS_PORT
+          value: "6379"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+  namespace: go-queue
+spec:
+  selector:
+    app: api
+  ports:
+  - port: 8080
+    targetPort: 8080
+  type: ClusterIP

@@ -21,7 +21,29 @@ func readinessHandler(w http.ResponseWriter, _ *http.Request) {
 }
 
 func main() {
-	queue := job.NewQueue(os.Getenv("REDIS_ADDR"))
+	// Determine Redis address with proper environment variable precedence
+	var redisAddr string
+
+	// First check REDIS_ADDR env var
+	redisAddr = os.Getenv("REDIS_ADDR")
+
+	// If not set, build from host and port
+	if redisAddr == "" {
+		host := os.Getenv("REDIS_HOST")
+		port := os.Getenv("REDIS_PORT")
+		if host == "" {
+			// Use fully-qualified Kubernetes DNS name instead of just "redis"
+			host = "redis.go-queue.svc.cluster.local"
+			log.Printf("REDIS_HOST not set, using Kubernetes FQDN: %s", host)
+		}
+		if port == "" {
+			port = "6379" // Default to 6379 if REDIS_PORT not set
+		}
+		redisAddr = host + ":" + port
+	}
+
+	log.Printf("API connecting to Redis at: %s", redisAddr)
+	queue := job.NewQueue(redisAddr)
 	handler := &api.Handler{Queue: queue}
 	router := api.NewRouter(handler)
 

@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -17,18 +19,38 @@ type Queue struct {
 }
 
 func NewQueue(redisAddr string) *Queue {
+	log.Printf("Creating Redis client with address: %s", redisAddr)
 	client := redis.NewClient(&redis.Options{
-		Addr: redisAddr,
+		Addr:        redisAddr,
+		DialTimeout: 5 * time.Second, // Add reasonable timeout
 	})
+
+	// Test the connection
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err := client.Ping(ctx).Result()
+	if err != nil {
+		log.Printf("WARNING: Failed to connect to Redis at %s: %v", redisAddr, err)
+	} else {
+		log.Printf("Successfully connected to Redis at %s", redisAddr)
+	}
+
 	return &Queue{client: client, key: "jobs"}
 }
 
 func (q *Queue) Enqueue(ctx context.Context, j Job) error {
 	data, err := json.Marshal(j)
 	if err != nil {
-		return err
+		return fmt.Errorf("error marshaling job: %w", err)
 	}
-	return q.client.RPush(ctx, q.key, data).Err()
+
+	err = q.client.RPush(ctx, q.key, data).Err()
+	if err != nil {
+		return fmt.Errorf("Redis RPush error: %w", err)
+	}
+
+	return nil
 }
 
 func (q *Queue) Dequeue(ctx context.Context) (string, error) {
