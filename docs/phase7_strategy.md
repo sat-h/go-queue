@@ -28,7 +28,7 @@
 
 ---
 
-### 3. Managed Redis or Redis Cluster - Post MVP 2
+### 3. Managed Redis or Redis Cluster - Post MVP 2  
 
 **What it can do:**
 - Delivers production-grade HA, scaling, and operational simplicity.
