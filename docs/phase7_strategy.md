@@ -101,6 +101,28 @@ kubectl delete pod worker-abc123
 
 ---
 
+### 4. Persistent Observability Stack - Post MVP 3
+
+**What it can do:**
+- Preserves logs and metrics beyond pod/container lifecycle
+- Enables historical analysis of system behavior during failures
+- Provides advanced visualization and alerting capabilities
+- Supports compliance requirements for log retention
+
+**What it requires:**
+- Persistent storage for logs and metrics
+- Additional infrastructure components:
+  - Log aggregation (EFK stack or Loki)
+  - Metrics storage (Prometheus with persistence)
+  - Visualization layer (Grafana)
+
+**What it cannot do:**
+- ❌ Work effectively without additional resources (storage, CPU, memory)
+- ❌ Operate completely offline or air-gapped without configuration
+- ❌ Replace proper application instrumentation (which is already in place)
+
+---
+
 ### 📊 What You Should Log
 
 | Metric            | What It Tells You                  |
