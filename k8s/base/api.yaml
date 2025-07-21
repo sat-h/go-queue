@@ -4,7 +4,7 @@ metadata:
   name: api
   namespace: go-queue
 spec:
-  replicas: 1  # Single instance for Phase 5
+  replicas: 2  # Multiple replicas for high availability
   selector:
     matchLabels:
       app: api
@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: api
-        image: go-queue-api:latest  # Use your API image name
+        image: go-queue-api:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
@@ -25,12 +25,12 @@ spec:
         - secretRef:
             name: go-queue-secrets
         env:
-        - name: REDIS_ADDR
-          value: "redis.go-queue.svc.cluster.local:6379"  # Explicitly set FQDN
-        - name: REDIS_HOST
-          value: "redis.go-queue.svc.cluster.local"  # Using FQDN instead of just 'redis'
-        - name: REDIS_PORT
-          value: "6379"
+        - name: REDIS_MODE
+          value: "sentinel"
+        - name: REDIS_SENTINEL_ADDRS
+          value: "redis-sentinel.go-queue.svc.cluster.local:26379"
+        - name: REDIS_MASTER_NAME
+          value: "mymaster"
         resources:
           requests:
             cpu: 100m
@@ -38,6 +38,18 @@ spec:
           limits:
             cpu: 200m
             memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
 ---
 apiVersion: v1
 kind: Service
