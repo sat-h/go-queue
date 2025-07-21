@@ -4,7 +4,7 @@ metadata:
   name: go-queue-worker
   namespace: go-queue
 spec:
-  replicas: 1  # Single instance for Phase 5
+  replicas: 2  # Multiple replicas for high availability
   selector:
     matchLabels:
       app: worker
@@ -17,16 +17,20 @@ spec:
       - name: worker
         image: go-queue-worker:latest  # Use your Worker image name
         imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8081  # For health and metrics endpoints
         envFrom:
         - configMapRef:
             name: go-queue-config
         - secretRef:
             name: go-queue-secrets
         env:
-        - name: REDIS_HOST
-          value: redis
-        - name: REDIS_PORT
-          value: "6379"
+        - name: REDIS_MODE
+          value: "sentinel"
+        - name: REDIS_SENTINEL_ADDRS
+          value: "redis-sentinel.go-queue.svc.cluster.local:26379"
+        - name: REDIS_MASTER_NAME
+          value: "mymaster"
         resources:
           requests:
             cpu: 100m
@@ -34,4 +38,15 @@ spec:
           limits:
             cpu: 200m
             memory: 256Mi
-
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -52,29 +53,70 @@ func main() {
 		}
 	}()
 
-	// Determine Redis address with proper environment variable precedence
-	var redisAddr string
+	// Configure Redis connection based on environment variables
+	var queue *job.Queue
 
-	// First check REDIS_ADDR env var
-	redisAddr = os.Getenv("REDIS_ADDR")
-
-	// If not set, build from host and port
-	if redisAddr == "" {
-		host := os.Getenv("REDIS_HOST")
-		port := os.Getenv("REDIS_PORT")
-		if host == "" {
-			// Use fully-qualified Kubernetes DNS name instead of just "redis"
-			host = "redis.go-queue.svc.cluster.local"
-			logger.Info("REDIS_HOST not set, using Kubernetes FQDN", zap.String("host", host))
-		}
-		if port == "" {
-			port = "6379" // Default to 6379 if REDIS_PORT not set
-		}
-		redisAddr = host + ":" + port
+	// Check if we're using Redis Sentinel
+	redisMode := os.Getenv("REDIS_MODE")
+	if redisMode == "" {
+		redisMode = "standalone" // Default to standalone mode
 	}
 
-	logger.Info("API connecting to Redis", zap.String("address", redisAddr))
-	queue := job.NewQueue(redisAddr)
+	logger.Info("Configuring Redis client", zap.String("mode", redisMode))
+
+	switch strings.ToLower(redisMode) {
+	case "sentinel":
+		// Get Sentinel configuration
+		sentinelAddrs := os.Getenv("REDIS_SENTINEL_ADDRS")
+		if sentinelAddrs == "" {
+			sentinelAddrs = "redis-sentinel:26379" // Default to our k8s service
+		}
+
+		masterName := os.Getenv("REDIS_MASTER_NAME")
+		if masterName == "" {
+			masterName = "mymaster" // Default master name from our sentinel config
+		}
+
+		// Split the sentinel addresses
+		sentinels := strings.Split(sentinelAddrs, ",")
+
+		logger.Info("Connecting to Redis via Sentinel",
+			zap.Strings("sentinels", sentinels),
+			zap.String("master", masterName))
+
+		queue = job.NewQueueWithOptions(job.QueueOptions{
+			RedisMode:  "sentinel",
+			RedisAddrs: sentinels,
+			MasterName: masterName,
+			Password:   os.Getenv("REDIS_PASSWORD"),
+		})
+
+	default:
+		// Determine Redis address with proper environment variable precedence
+		var redisAddr string
+
+		// First check REDIS_ADDR env var
+		redisAddr = os.Getenv("REDIS_ADDR")
+
+		// If not set, build from host and port
+		if redisAddr == "" {
+			host := os.Getenv("REDIS_HOST")
+			port := os.Getenv("REDIS_PORT")
+			if host == "" {
+				// Use fully-qualified Kubernetes DNS name instead of just "redis"
+				host = "redis.go-queue.svc.cluster.local"
+				logger.Info("REDIS_HOST not set, using Kubernetes FQDN", zap.String("host", host))
+			}
+			if port == "" {
+				port = "6379" // Default to 6379 if REDIS_PORT not set
+			}
+			redisAddr = host + ":" + port
+		}
+
+		logger.Info("API connecting to Redis in standalone mode", zap.String("address", redisAddr))
+		queue = job.NewQueue(redisAddr)
+	}
+
 	handler := &api.Handler{Queue: queue}
 	router := api.NewRouter(handler)
 

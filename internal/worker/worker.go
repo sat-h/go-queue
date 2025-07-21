@@ -10,6 +10,7 @@ import (
 	"github.com/cenkalti/backoff/v4"
 	"github.com/redis/go-redis/v9"
 	"github.com/sat-h/go-queue/internal/job"
+	"github.com/sat-h/go-queue/internal/observability/metrics"
 )
 
 type Worker struct {
@@ -46,6 +47,7 @@ func (w *Worker) poll(ctx context.Context, jobs chan<- job.Job) {
 			}
 			if err != nil {
 				log.Printf("Error dequeuing: %v", err)
+				time.Sleep(time.Second) // Add backoff on error
 				continue
 			}
 
@@ -55,12 +57,22 @@ func (w *Worker) poll(ctx context.Context, jobs chan<- job.Job) {
 				continue
 			}
 
+			// Check if this job has already been processed (deduplication)
+			if j.ID != "" && w.Queue.IsProcessed(j.ID) {
+				log.Printf("Skipping already processed job ID: %s", j.ID)
+				// Count deduplication events in metrics
+				metrics.JobProcessed("deduplicated", j.Type)
+				continue
+			}
+
 			jobs <- j
 		}
 	}
 }
 
 func (w *Worker) handleJob(ctx context.Context, j job.Job) {
+	startTime := time.Now()
+
 	operation := func() error {
 		return w.Processor.Process(ctx, j)
 	}
@@ -70,6 +82,17 @@ func (w *Worker) handleJob(ctx context.Context, j job.Job) {
 
 	if err := backoff.Retry(operation, expBackoff); err != nil {
 		log.Printf("Job failed after retries: %v", err)
-		// Optional: move to dead-letter queue here
+		metrics.JobProcessed("failed", j.Type)
+		return
 	}
+
+	// Mark job as processed to avoid duplicates during failover
+	if j.ID != "" {
+		w.Queue.MarkProcessed(j.ID)
+	}
+
+	// Record metrics for successful processing
+	duration := time.Since(startTime).Seconds()
+	metrics.ObserveJobProcessingTime(j.Type, duration)
+	metrics.JobProcessed("success", j.Type)
 }
