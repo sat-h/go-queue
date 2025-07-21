@@ -9,6 +9,8 @@ Go Queue is a robust, fault-tolerant job processing system designed for high-vol
 ![Docker](https://img.shields.io/badge/Docker-Ready-blue)
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-Ready-blue)
 
+> **[📑 Project Development Plan](./go-queue.wiki/Project_Development_Plan.md)** - View our complete development roadmap
+
 ## 🚀 Key Features
 
 - **High Throughput Job Processing**: Capable of handling thousands of jobs per second with configurable concurrency
