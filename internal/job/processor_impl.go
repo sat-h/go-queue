@@ -6,9 +6,9 @@ import (
 	"time"
 )
 
-type SimpleProcessor struct{}
+type ProcessorImpl struct{}
 
-func (p *SimpleProcessor) Process(ctx context.Context, job Job) error {
+func (p *ProcessorImpl) Process(ctx context.Context, job Job) error {
 	log.Printf("Processing job: %+v", job)
 	// Simulate work
 	select {

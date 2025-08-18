@@ -26,11 +26,9 @@ spec:
             name: go-queue-secrets
         env:
         - name: REDIS_MODE
-          value: "sentinel"
-        - name: REDIS_SENTINEL_ADDRS
-          value: "redis-sentinel.go-queue.svc.cluster.local:26379"
-        - name: REDIS_MASTER_NAME
-          value: "mymaster"
+          value: "standalone"
+        - name: REDIS_ADDR
+          value: "redis.go-queue.svc.cluster.local:6379"
         resources:
           requests:
             cpu: 100m
