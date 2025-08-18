@@ -5,7 +5,7 @@ resources:
   - namespace.yaml
   - configmap.yaml
   - secrets.yaml
-  - redis-ha.yaml
+  - redis.yaml
   - api.yaml
   - worker.yaml
   - ingress.yaml

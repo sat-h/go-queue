@@ -35,10 +35,16 @@ kubectl get nodes
 Build the API and Worker Docker images:
 
 ```bash
-# From project root
-docker build -t go-queue-api:latest -f docker/Dockerfile.api .
-docker build -t go-queue-worker:latest -f docker/Dockerfile.worker .
+# If you're in the docs directory, first navigate back to the project root
+cd ..
+
+# Now build the Docker images
+docker build -t go-queue-api:latest -f ./docker/Dockerfile.api .
+docker build -t go-queue-worker:latest -f ./docker/Dockerfile.worker .
+
 ```
+
+> **Note**: If you're running these commands using the green "Run" button in your IDE or documentation viewer, make sure to first navigate to the project root directory. Alternatively, you can use the commands with absolute paths shown above.
 
 Note: We don't need to build a Redis image as the deployment will automatically pull the official Redis image (`redis:6.2-alpine`) from Docker Hub.
 
