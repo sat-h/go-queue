@@ -308,7 +308,7 @@ If you're using Minikube and local Docker images:
 # Load API image into Minikube
 minikube image load go-queue-api:latest
 
-# Load Worker image into Minikube  
+# Load Worker image into Minikube
 minikube image load go-queue-worker:latest
 ```
 

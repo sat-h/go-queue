@@ -86,18 +86,18 @@ func NewQueue(redisAddr string) *Queue {
         Addr:        redisAddr,
         DialTimeout: 5 * time.Second, // Add reasonable timeout
     })
-    
+
     // Test the connection
     ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
     defer cancel()
-    
+
     _, err := client.Ping(ctx).Result()
     if err != nil {
         log.Printf("WARNING: Failed to connect to Redis at %s: %v", redisAddr, err)
     } else {
         log.Printf("Successfully connected to Redis at %s", redisAddr)
     }
-    
+
     return &Queue{client: client, key: "jobs"}
 }
 ```
