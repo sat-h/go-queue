@@ -1,0 +1,51 @@
+# Markdown Linting Configuration
+# This file configures markdownlint rules for consistent formatting
+
+# MD013: Line length
+MD013:
+  line_length: 100
+  code_blocks: false
+  tables: false
+
+# MD009: Trailing spaces
+MD009:
+  br_spaces: 2  # Allow 2 trailing spaces for line breaks
+  list_item_empty_lines: false
+  strict: false
+
+# MD010: Hard tabs
+MD010: false  # Allow tabs in code blocks
+
+# MD012: Multiple consecutive blank lines
+MD012:
+  maximum: 2
+
+# MD022: Headers should be surrounded by blank lines
+MD022:
+  lines_above: 1
+  lines_below: 1
+
+# MD025: Multiple top level headers in the same document
+MD025: false  # Allow multiple H1 headers
+
+# MD029: Ordered list item prefix
+MD029:
+  style: ordered
+
+# MD033: Inline HTML
+MD033:
+  allowed_elements: ["br", "img", "details", "summary"]
+
+# MD041: First line in file should be a top level header
+MD041: false  # Allow files without H1 as first line
+
+# MD046: Code block style
+MD046:
+  style: fenced
+
+# MD047: Files should end with a single newline character
+MD047: true
+
+# MD048: Code fence style
+MD048:
+  style: backtick
