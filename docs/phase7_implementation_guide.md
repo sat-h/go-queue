@@ -317,7 +317,7 @@ func NewQueueWithOptions(opts QueueOptions) *Queue {
 		opts.DialTimeout = 5 * time.Second
 	}
 	if opts.ReadTimeout == 0 {
-		opts.ReadTimeout = 3 * time.Second 
+		opts.ReadTimeout = 3 * time.Second
 	}
 	if opts.WriteTimeout == 0 {
 		opts.WriteTimeout = 3 * time.Second
@@ -328,7 +328,7 @@ func NewQueueWithOptions(opts QueueOptions) *Queue {
 
 	switch strings.ToLower(opts.RedisMode) {
 	case "sentinel":
-		log.Printf("Creating Redis client with Sentinel. Master: %s, Sentinels: %v", 
+		log.Printf("Creating Redis client with Sentinel. Master: %s, Sentinels: %v",
 			opts.MasterName, opts.RedisAddrs)
 		client = redis.NewFailoverClient(&redis.FailoverOptions{
 			MasterName:    opts.MasterName,
@@ -372,7 +372,7 @@ func NewQueueWithOptions(opts QueueOptions) *Queue {
 	}
 
 	processedJobs := NewJobIDMap()
-	
+
 	// Start a background goroutine to clean up the processed jobs map
 	go func() {
 		for {
@@ -382,7 +382,7 @@ func NewQueueWithOptions(opts QueueOptions) *Queue {
 	}()
 
 	return &Queue{
-		client:       client, 
+		client:       client,
 		key:          "jobs",
 		processedJobs: processedJobs,
 	}
@@ -418,7 +418,7 @@ func (q *Queue) Enqueue(ctx context.Context, j Job) error {
 	if j.ID == "" {
 		return fmt.Errorf("job must have an ID")
 	}
-	
+
 	// ... existing marshaling and Redis code ...
 }
 ```
@@ -473,12 +473,12 @@ func (w *Worker) handleJob(ctx context.Context, j job.Job) {
 		metrics.JobProcessed("failed", "unknown")
 		return
 	}
-	
+
 	// Mark job as processed to avoid duplicates during failover
 	if j.ID != "" {
 		w.Queue.MarkProcessed(j.ID)
 	}
-	
+
 	// ... existing metrics code ...
 }
 ```
@@ -504,14 +504,14 @@ var (
 	jobsProcessed *prometheus.CounterVec
 	jobProcessingTime *prometheus.HistogramVec
 	queueLength prometheus.Gauge
-	
+
 	// New HA-related metrics
 	redisConnectionFailures *prometheus.CounterVec
 	redisReconnectionAttempts prometheus.Counter
 	redisReconnectionSuccess prometheus.Counter
 	jobDeduplicationEvents *prometheus.CounterVec
 	workerRecoveryTime *prometheus.HistogramVec
-	
+
 	once sync.Once
 )
 
@@ -542,7 +542,7 @@ func Init() {
 				Help: "Current number of jobs in the queue",
 			},
 		)
-		
+
 		// New HA metrics
 		redisConnectionFailures = promauto.NewCounterVec(
 			prometheus.CounterOpts{
@@ -551,21 +551,21 @@ func Init() {
 			},
 			[]string{"connection_type"}, // "sentinel", "master", "replica"
 		)
-		
+
 		redisReconnectionAttempts = promauto.NewCounter(
 			prometheus.CounterOpts{
 				Name: "redis_reconnection_attempts_total",
 				Help: "Total number of Redis reconnection attempts",
 			},
 		)
-		
+
 		redisReconnectionSuccess = promauto.NewCounter(
 			prometheus.CounterOpts{
 				Name: "redis_reconnection_success_total",
 				Help: "Total number of successful Redis reconnections",
 			},
 		)
-		
+
 		jobDeduplicationEvents = promauto.NewCounterVec(
 			prometheus.CounterOpts{
 				Name: "job_deduplication_events_total",
@@ -573,7 +573,7 @@ func Init() {
 			},
 			[]string{"job_type"},
 		)
-		
+
 		workerRecoveryTime = promauto.NewHistogramVec(
 			prometheus.HistogramOpts{
 				Name: "worker_recovery_time_seconds",
@@ -661,7 +661,7 @@ func NewQueueWithOptions(opts QueueOptions) *Queue {
 	} else {
 		log.Printf("Successfully connected to Redis")
 	}
-	
+
 	// ...existing code...
 }
 ```
@@ -827,26 +827,26 @@ case "sentinel":
     if sentinelAddrs == "" {
         sentinelAddrs = "redis-sentinel:26379" // Default to our k8s service
     }
-    
+
     masterName := os.Getenv("REDIS_MASTER_NAME")
     if masterName == "" {
         masterName = "mymaster" // Default master name from our sentinel config
     }
-    
+
     // Split the sentinel addresses
     sentinels := strings.Split(sentinelAddrs, ",")
-    
-    logger.Info("Connecting to Redis via Sentinel", 
+
+    logger.Info("Connecting to Redis via Sentinel",
         zap.Strings("sentinels", sentinels),
         zap.String("master", masterName))
-    
+
     queue = job.NewQueueWithOptions(job.QueueOptions{
         RedisMode:   "sentinel",
         RedisAddrs:  sentinels,
         MasterName:  masterName,
         Password:    os.Getenv("REDIS_PASSWORD"),
     })
-    
+
 default:
     // Determine Redis address with proper environment variable precedence
     var redisAddr string
@@ -930,7 +930,7 @@ kubectl logs -n go-queue -l app=worker --tail=20
 # First, get Redis pod names
 kubectl get pods -n go-queue -l app=redis-master
 
-# Kill the master pod 
+# Kill the master pod
 kubectl delete pod -n go-queue redis-master-0
 ```
 
@@ -957,7 +957,7 @@ done
 
 6. **Document observations**
    - How long was the system unavailable?
-   - Were any jobs lost or duplicated? 
+   - Were any jobs lost or duplicated?
    - Did the workers reconnect automatically?
    - Did Sentinel promote the replica successfully?
 
@@ -1043,7 +1043,7 @@ kubectl logs -n go-queue -l app=worker -f
 Test Scenario: [Name]
 Date/Time: [When test was conducted]
 ------------------------------------
-Configuration: 
+Configuration:
 - Redis: [Sentinel config details]
 - API Replicas: [Number]
 - Worker Replicas: [Number]

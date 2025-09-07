@@ -56,7 +56,7 @@ With alignment achieved, instruct the agent to generate the step-by-step guide a
 
 ## Sample Brainstorming Prompt
 
-> Let’s brainstorm before generating a deployment guide for phase 5 of my development plan.  
+> Let’s brainstorm before generating a deployment guide for phase 5 of my development plan.
 > Please:
 > - Analyze the plan and outline any key decisions or ambiguities.
 > - List questions or clarifications you need from me (e.g., number of instances, local vs. cloud).

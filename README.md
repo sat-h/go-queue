@@ -84,6 +84,7 @@ Comprehensive documentation is available in the `docs/` directory:
 - Observability implementation details
 - High availability testing procedures
 - Redis connection troubleshooting
+- [Markdown Style Guide](docs/MARKDOWN_STYLE_GUIDE.md) - Formatting standards for documentation
 
 ## 📄 License
 
